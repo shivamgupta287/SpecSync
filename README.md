@@ -1,4 +1,4 @@
-# GSMArena Scraper
+# SpecSync
 
 A command-line tool to scrape phone specs and brand listings from GSMArena.
 
