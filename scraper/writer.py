@@ -1,7 +1,10 @@
 import json
+import logging
 import os
 import re
 from datetime import datetime
+
+log = logging.getLogger("scraper.writer")
 
 
 def _slugify(text: str) -> str:
@@ -19,8 +22,10 @@ def save_to_json(data: dict | list, label: str) -> str:
     os.makedirs("output", exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"output/{_slugify(label)}_{timestamp}.json"
+    log.info(f"Saving data to {filename}")
 
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
+    log.debug(f"Write complete: {filename}")
     return filename

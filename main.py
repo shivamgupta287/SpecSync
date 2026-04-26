@@ -12,12 +12,6 @@ import argparse
 import logging
 import sys
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s [%(levelname)-8s] %(name)s: %(message)s",
-    datefmt="%H:%M:%S",
-)
-
 from scraper import (
     find_brand,
     get_phones_for_brand,
@@ -28,17 +22,18 @@ from scraper import (
     save_to_json,
 )
 
+log = logging.getLogger("main")
 
 
 def cmd_brand(brand_name: str, limit: int):
-    print(f"[*] Looking up brand: {brand_name}")
+    log.info(f"Looking up brand: {brand_name}")
     brand = find_brand(brand_name)
     if not brand:
-        print(f"[!] Brand '{brand_name}' not found on GSMArena.")
+        log.error(f"Brand '{brand_name}' not found on GSMArena.")
         sys.exit(1)
 
-    print(f"[*] Found: {brand['name']}  ({brand['phone_count']} phones total)")
-    print(f"[*] Fetching phone list (limit={limit or 'all'}) ...")
+    log.info(f"Found: {brand['name']}  ({brand['phone_count']} phones total)")
+    log.info(f"Fetching phone list (limit={limit or 'all'}) ...")
     phones = get_phones_for_brand(brand["url"], limit=limit)
     print_phone_list(phones, brand["name"])
 
@@ -46,26 +41,26 @@ def cmd_brand(brand_name: str, limit: int):
         {"brand": brand, "phones": phones},
         label=brand["name"],
     )
-    print(f"[*] Saved to {path}")
+    log.info(f"Saved to {path}")
 
 
 def cmd_phone(phone_name: str):
-    print(f"[*] Searching: {phone_name}")
+    log.info(f"Searching: {phone_name}")
     match = search_phone(phone_name)
     if not match:
-        print(f"[!] No result found for '{phone_name}'.")
+        log.error(f"No result found for '{phone_name}'.")
         sys.exit(1)
 
-    print(f"[*] Found: {match['name']}")
-    print(f"[*] Fetching specs ...")
+    log.info(f"Found: {match['name']}")
+    log.info("Fetching specs ...")
     specs = get_phone_specs(match["url"])
     if not specs:
-        print("[!] Could not fetch specs.")
+        log.error("Could not fetch specs.")
         sys.exit(1)
 
     print_specs(specs)
     path = save_to_json(specs, label=match["name"])
-    print(f"[*] Saved to {path}")
+    log.info(f"Saved to {path}")
 
 
 def main():
