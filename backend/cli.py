@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-GSMArena Scraper — Entry Point
--------------------------------
+SpecSync — CLI
+----------------------
 Usage:
-  python main.py --brand Samsung
-  python main.py --brand OnePlus --limit 50
-  python main.py --phone "Apple iPhone 17 Pro"
+  python cli.py --brand Samsung
+  python cli.py --brand OnePlus --limit 50
+  python cli.py --phone "Apple iPhone 17 Pro"
 """
 
 import argparse
@@ -22,7 +22,7 @@ from scraper import (
     save_to_json,
 )
 
-log = logging.getLogger("main")
+log = logging.getLogger("cli")
 
 
 def cmd_brand(brand_name: str, limit: int):
@@ -37,10 +37,7 @@ def cmd_brand(brand_name: str, limit: int):
     phones = get_phones_for_brand(brand["url"], limit=limit)
     print_phone_list(phones, brand["name"])
 
-    path = save_to_json(
-        {"brand": brand, "phones": phones},
-        label=brand["name"],
-    )
+    path = save_to_json({"brand": brand, "phones": phones}, label=brand["name"])
     log.info(f"Saved to {path}")
 
 
@@ -65,8 +62,8 @@ def cmd_phone(phone_name: str):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="main.py",
-        description="GSMArena scraper — search by brand or phone name",
+        prog="cli.py",
+        description="SpecSync — search by brand or phone name",
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--brand", metavar="BRAND", help='Brand name  e.g. "Samsung"')

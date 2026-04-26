@@ -1,6 +1,35 @@
-venv/
+# ── Python ──
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# ── Virtual environments ──
+venv/
+backend/venv/
+
+# ── Environment variables ──
 .env
-logs/
+.env.*
+backend/.env
+
+# ── Logs ──
 log/
+logs/
+backend/log/
+*.log
+
+# ── Scraper output ──
+output/
+backend/output/
+
+# ── Next.js ──
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/node_modules/
+
+# ── OS ──
+.DS_Store
+Thumbs.db

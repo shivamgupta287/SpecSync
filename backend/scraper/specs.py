@@ -207,6 +207,67 @@ def _search_via_brand_listing(query: str) -> dict | None:
     return _pick_from_list(candidates)
 
 
+def search_phone_candidates(query: str) -> list[dict]:
+    """
+    Non-interactive version of search_phone for API use.
+    Returns all scored candidates (score >= 0.5) sorted by score descending,
+    without ever prompting the user.
+    """
+    log.info(f"Searching candidates for: '{query}'")
+
+    soup = fetch(f"{BASE_URL}/search.php3?sQuickSearch={query.replace(' ', '+')}")
+    if soup:
+        result = _extract_first_result(soup)
+        if result:
+            log.info(f"Quick search matched: {result['name']}")
+            result["score"] = 1.0
+            return [result]
+
+    from .brands import get_all_brands
+    query_lower = query.lower()
+    query_tokens = set(query_lower.split())
+    brands = get_all_brands()
+
+    matched_brand = None
+    for brand in sorted(brands, key=lambda b: len(b["name"]), reverse=True):
+        if brand["name"].lower() in query_lower:
+            matched_brand = brand
+            break
+
+    if not matched_brand:
+        log.warning(f"No brand found in query '{query}' — returning empty candidates.")
+        return []
+
+    brand_tokens = set(matched_brand["name"].lower().split())
+    search_tokens = query_tokens - brand_tokens or query_tokens
+    candidates: list[dict] = []
+    page_url = matched_brand["url"]
+    page_num = 1
+
+    while page_url:
+        soup = fetch(page_url)
+        if not soup:
+            break
+        listing = soup.find("div", id="review-body")
+        if not listing:
+            break
+        for li in listing.find_all("li"):
+            a = li.find("a")
+            if not a:
+                continue
+            span = a.find("span")
+            name = span.get_text(strip=True) if span else a.get_text(strip=True)
+            score = _jaccard(search_tokens, set(name.lower().split()))
+            if score >= 0.5:
+                candidates.append({"name": name, "url": urljoin(BASE_URL, a.get("href", "")), "score": score})
+        page_url = _next_page_url(soup)
+        page_num += 1
+
+    candidates.sort(key=lambda c: c["score"], reverse=True)
+    log.info(f"Found {len(candidates)} candidates for '{query}'")
+    return candidates
+
+
 def get_phone_specs(phone_url: str) -> dict | None:
     log.info(f"Fetching specs from: {phone_url}")
     soup = fetch(phone_url)
